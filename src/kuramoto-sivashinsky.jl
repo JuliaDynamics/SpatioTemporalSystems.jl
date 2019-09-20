@@ -1,4 +1,4 @@
-export KuramotoSivashinsky
+export kuramoto_sivashinsky
 
 """
 ksintegrateDiffEq: integrate kuramoto-sivashinsky equation (Julia)
@@ -13,7 +13,7 @@ ksintegrateDiffEq: integrate kuramoto-sivashinsky equation (Julia)
           u = final state, vector of u(x, Nt*dt) at uniform x gridpoints
 This an implementation using ApproxFun and OrdinaryDiffEq.
 """
-function KuramotoSivashinsky(u0::AbstractVector{X}, L;
+function kuramoto_sivashinsky(u0::AbstractVector{X}, L;
     solver = ETDRK4(), tspan = (zero(T), one(T)), kwargs...) where {X}
 
     n = length(u0)                  # number of gridpoints
@@ -32,7 +32,7 @@ function KuramotoSivashinsky(u0::AbstractVector{X}, L;
     params = (D, T, Ti)
     prob = SplitODEProblem(A, ksnonlinear, T*u0, tspan, params)
     sol = solve(prob, solver; kwargs...)
-    return sol.t, Ti .* sol.u, prob
+    return sol.t, map(u -> Ti*u, sol.u), prob
 end
 
 struct KSFunctor{T}; tmp::Vector{T}; end

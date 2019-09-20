@@ -4,14 +4,20 @@ using Test, SpatioTemporalSystems
 L = 200  # physical size of system
 Q = 512  # number of gridpoints
 dt = 1/4 # dt (accepted as keyword)
-nsave = 1
-Nt = 100000
-Nskip = 10000
-x = L*(0:Q-1)/Q
+T = 1100.0
+Tskip = 100.0
+x = L*(0:Q-1)/Q # position vector
 u0 = cos.(x) + 0.1*sin.(x/8) + 0.01*cos.((2*pi/L)*x);
 
-t,u = ksintegrateDiffEq(u0, L; dt = dt Nt+Nskip, nsave)
-t = t[Nskip÷nsave+1:end]
-u = u[Nskip÷nsave+1:end]
-# path = joinpath(datadir(), "sim","KS_T$(Nt)_L$(L)_Q$(Q).jld2")
-# save(path, "t", t, "u", u)
+t, u = kuramoto_sivashinsky(u0, L; tspan = (0.0, T), dt = dt, saveat = Tskip:dt:T)
+
+# %%
+using PyPlot
+ax = gca()
+ax.clear()
+U = hcat(u...)
+ax.imshow(U, extent = (Tskip, T, 0, L))
+ax.set_aspect("auto")
+ax.set_ylabel("x")
+ax.set_xlabel("t")
+gcf().tight_layout()
