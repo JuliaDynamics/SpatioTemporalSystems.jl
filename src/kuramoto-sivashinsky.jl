@@ -1,21 +1,13 @@
 export kuramoto_sivashinsky
 
 """
-ksintegrateDiffEq: integrate kuramoto-sivashinsky equation (Julia)
-       u_t = -u*u_x - u_xx - u_xxxx, domain x in [0,Lx], periodic BCs
- inputs
-          u = initial condition (vector of u(x) values on uniform gridpoints))
-         Lx = domain length
-         dt = time step
-         Nt = number of integration timesteps
-         nsave = save every n-th timestep
- outputs
-          u = final state, vector of u(x, Nt*dt) at uniform x gridpoints
-This an implementation using ApproxFun and OrdinaryDiffEq.
+```
+kuramoto_sivashinsky(u0::AbstractVector{X}, L::Real;
+solver = ETDRK4(), kwargs...)
+```
 """
-function kuramoto_sivashinsky(u0::AbstractVector{X}, L;
+function kuramoto_sivashinsky(u0::AbstractVector{X}, L::Real;
     solver = ETDRK4(), tspan = (zero(T), one(T)), kwargs...) where {X}
-
     n = length(u0)                  # number of gridpoints
     S = Fourier(0..L)
     T = ApproxFun.plan_transform(S, n)

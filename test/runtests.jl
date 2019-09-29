@@ -16,7 +16,7 @@ using PyPlot
 ax = gca()
 ax.clear()
 U = hcat(u...)
-ax.imshow(U, extent = (Tskip, T, 0, L))
+ax.imshow(U, extent = (Tskip, T, 0, L), cmap = "inferno")
 ax.set_aspect("auto")
 ax.set_ylabel("x")
 ax.set_xlabel("t")
