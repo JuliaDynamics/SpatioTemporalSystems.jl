@@ -11,13 +11,15 @@ The API of this package is provided by one struct `SpatioTemporalSystem` and one
 This `struct` contains all information necessary to generate spatiotemporal timeseries for a system.
 
 ```julia
-@with_kw struct SpatioTemporalSystem{Model}
-    N                 # Int or NTuple{Int}: spatial extent (in pixels!)
-    T::Real = 1000    # total time to evolve for in real time units
+struct SpatioTemporalSystem{Model}
+    N                 # Intr or NTuple{Int}: spatial extent (in pixels!)
+    T::Real = 1000    # total time to record timeseries for (in real time)
     Δt::Real = 1      # sampling time in real time units
+    S::Real = 10      # Skip time. saving data starts _after_ evolving for S
     ic = nothing      # initial condition: string, seed, array...
     p  = NamedTuple() # parameters of system (expected as NamedTuple)
 end
+const STS = SpatioTemporalSystem
 ```
 
 Here `Model` is a `Symbol`, which specifies the "codeword" of the system.
@@ -42,7 +44,7 @@ for a random amount of time).
 `ic` could even be a `String`, if the underlying low-level functions for
 a specific system provide such option.
 
-`SpatioTemporalSystem` properly expands DrWatson's `savename` and has been appropriately configured to play well with `produce_or_load` via the provided function `makesim`.
+`SpatioTemporalSystem` fully customizes DrWatson's `savename` (`S` is not printed in `savename`), and has been appropriately configured to play well with `produce_or_load` via the provided function `makesim`.
 This ensures that you don't produce identical spatiotemporal timeseries more than once.
 
 ### `makesim`

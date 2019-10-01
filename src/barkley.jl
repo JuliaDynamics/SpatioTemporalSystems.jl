@@ -1,13 +1,9 @@
 using Random
 
 function makesim(sts::Union{STS{:Barkley}, STS{:bk}})
-    t, U, V = barkley(sts.ic, sts.T, sts.Δt, sts.N; sts.p...)
-    return @dict t sts U V
-end
-
-function barkley(ic, T::Real, Δt, N; kwargs...)
+    @unpack N, T, Δt, S, ic = sts
     Nx, Ny = typeof(N) <: Tuple ? (N[1], N[2]) : (N, N)
-    FType = get(kwargs, :FType, Float32)
+    FType = get(sts.p, :FType, Float32)
     # Assertions
     @assert Δt/BK_INTEG_DT == round(Int, Δt/BK_INTEG_DT) "Δt must be multiple of the integration step (0.01)"
     every = round(Int, Δt/BK_INTEG_DT)
@@ -29,11 +25,12 @@ function barkley(ic, T::Real, Δt, N; kwargs...)
     else
         error(ICERROR)
     end
-    return barkley(u, v, T, Δt; kwargs...)
+    t, U, V = barkley(u, v, S, T, Δt; sts.p...)
+    return @dict t sts U V
 end
 
 """
-    barkley(U0, V0, T, Δt; kwargs...)
+    barkley(U0, V0, S, T, Δt; kwargs...)
 Simulate the nonlinear Barkley model with initial conditions `U0, V0` for
 the fields `U, V`.
 
@@ -53,20 +50,23 @@ http://www.scholarpedia.org/article/Barkley_model )
 
 `a` can also be a `Matrix` (of size `Nx×Ny`), to e.g. represent inhomogeneity.
 """
-function barkley(u::Matrix, v::Matrix, T, Δt; periodic=true,
-                  skip=100, a=0.75, b=0.06, ε=0.08, D=1/50, h=0.1,
-                  )
+function barkley(u::Matrix, v::Matrix, S, T, Δt; periodic=true,
+                 skip=100, a=0.75, b=0.06, ε=0.08, D=1/50, h=0.1,
+                 )
 
     FType = eltype(u)
     bk_integ_dt = FType(BK_INTEG_DT)
-    total = T÷Δt # how many steps to save
+    total = Int(T÷Δt) # how many steps to save
     Nx, Ny = size(u)
     @assert size(u) == size(v)
     u, v = copy(u), copy(v)
     U = Matrix{FType}[]
     V = Matrix{FType}[]
+    sizehint!(U, total); sizehint!(V, total)
+
     Σ = zeros(FType, Nx, Ny, 2)
-    r,s = 1,2
+    r, s = 1, 2
+    every = Δt÷bk_integ_dt
 
     function F(u, uth)
         if u < uth
@@ -103,17 +103,22 @@ function barkley(u::Matrix, v::Matrix, T, Δt; periodic=true,
         end
     end
 
-    for m=1:(total*every+skip*every)
+    # evolve for skip time
+    for j in 1:S÷bk_integ_dt
         periodic ? periodic_step!(u,v,Σ,a,b,Nx,Ny,s,r,D,bk_integ_dt,h) :
                    constant_step!(u,v,Σ,a,b,Nx,Ny,s,r,D,bk_integ_dt,h)
         r,s = s,r
-        if m > skip*every && (m-skip*every) % every == 0
-            # TODO: Optimize this, we know before hand the amount...
-            push!(U, copy(u))
-            push!(V, copy(v))
-        end
     end
-    return timevector, U, V
+    push!(U, copy(u)); push!(V, copy(v)) # actual initial condition
+    for j in 1:total
+        for i in 1:every
+            periodic ? periodic_step!(u,v,Σ,a,b,Nx,Ny,s,r,D,bk_integ_dt,h) :
+                       constant_step!(u,v,Σ,a,b,Nx,Ny,s,r,D,bk_integ_dt,h)
+            r,s = s,r
+        end
+        push!(U, copy(u)); push!(V, copy(v))
+    end
+    return 0:Δt:T, U, V
 end
 
 _get_a(a::Number, i, j) = a

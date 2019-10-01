@@ -19,28 +19,28 @@ uuid = "28f2ccd6-bb30-5033-b560-165f7b14dc2f"
 version = "0.11.7"
 
 [[ApproxFunBase]]
-deps = ["AbstractFFTs", "BandedMatrices", "BlockArrays", "BlockBandedMatrices", "Calculus", "DSP", "DomainSets", "DualNumbers", "FFTW", "FastGaussQuadrature", "FastTransforms", "FillArrays", "InfiniteArrays", "IntervalSets", "LazyArrays", "LinearAlgebra", "LowRankApprox", "SparseArrays", "SpecialFunctions", "StaticArrays", "Statistics", "Test", "ToeplitzMatrices"]
-git-tree-sha1 = "83f6ea683c2110ddfb44e6b9ec62be4f6d8be593"
+deps = ["AbstractFFTs", "BandedMatrices", "BlockArrays", "BlockBandedMatrices", "Calculus", "DSP", "DomainSets", "DualNumbers", "FFTW", "FastGaussQuadrature", "FillArrays", "InfiniteArrays", "IntervalSets", "LazyArrays", "LinearAlgebra", "LowRankApprox", "SparseArrays", "SpecialFunctions", "StaticArrays", "Statistics", "Test", "ToeplitzMatrices"]
+git-tree-sha1 = "e0834fc3c184e9169d6010206388917e4eeb008e"
 uuid = "fbd15aa5-315a-5a7d-a8a4-24992e37be05"
-version = "0.1.6"
+version = "0.2.0"
 
 [[ApproxFunFourier]]
 deps = ["AbstractFFTs", "ApproxFunBase", "DomainSets", "FFTW", "FastTransforms", "InfiniteArrays", "IntervalSets", "LinearAlgebra", "Reexport"]
-git-tree-sha1 = "d47ffe5963c037402689ce77510863055f0a0738"
+git-tree-sha1 = "8aa893961d89e9f27b8f3bece1dcd13a8695f9c6"
 uuid = "59844689-9c9d-51bf-9583-5b794ec66d30"
-version = "0.1.5"
+version = "0.1.6"
 
 [[ApproxFunOrthogonalPolynomials]]
 deps = ["AbstractFFTs", "ApproxFunBase", "BandedMatrices", "BlockArrays", "BlockBandedMatrices", "DomainSets", "FFTW", "FastGaussQuadrature", "FastTransforms", "FillArrays", "IntervalSets", "LinearAlgebra", "Reexport", "SpecialFunctions", "Statistics"]
-git-tree-sha1 = "7f31abad0f3e48702b2aa820e532245294b39841"
+git-tree-sha1 = "476b3a9b49d59170feab5e5ab3b780504a3258f9"
 uuid = "b70543e2-c0d9-56b8-a290-0d4d6d4de211"
-version = "0.2.3"
+version = "0.2.4"
 
 [[ApproxFunSingularities]]
 deps = ["ApproxFunBase", "ApproxFunOrthogonalPolynomials", "DomainSets", "IntervalSets", "LinearAlgebra", "Reexport", "Statistics"]
-git-tree-sha1 = "48bfd95fbecf4330cd37a9858a1724da913ca6ed"
+git-tree-sha1 = "2e38b014019a334676ab77de15c29afceed7c9c4"
 uuid = "f8fcb915-6b99-5be2-b79a-d6dbef8e6e7e"
-version = "0.1.4"
+version = "0.1.5"
 
 [[ArnoldiMethod]]
 deps = ["DelimitedFiles", "LinearAlgebra", "Random", "SparseArrays", "StaticArrays", "Test"]
@@ -56,9 +56,9 @@ version = "1.2.1"
 
 [[BandedMatrices]]
 deps = ["FillArrays", "LazyArrays", "LinearAlgebra", "MatrixFactorizations", "Random", "SparseArrays"]
-git-tree-sha1 = "887159a41e0bf6d5d9fe9dd98ca7a48f6b8780d4"
+git-tree-sha1 = "be057004cfe3464b156015324b7346c5879ec9cf"
 uuid = "aae01518-5342-5314-be14-df237901396f"
-version = "0.11.1"
+version = "0.12.1"
 
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
@@ -83,9 +83,9 @@ version = "0.10.0"
 
 [[BlockBandedMatrices]]
 deps = ["BandedMatrices", "BlockArrays", "Distributed", "FillArrays", "LazyArrays", "LinearAlgebra", "MatrixFactorizations", "Pkg", "Profile", "Random", "SharedArrays", "SparseArrays", "Statistics", "Test"]
-git-tree-sha1 = "f18a3f8314dd313a30e1bb30c0f3ba8446d342ef"
+git-tree-sha1 = "160fc541f01304ab823d1aff1959e84f28a63faf"
 uuid = "ffab5731-97b5-5995-9138-79e8c1846df0"
-version = "0.5.0"
+version = "0.5.1"
 
 [[CSTParser]]
 deps = ["Tokenize"]
@@ -200,6 +200,12 @@ git-tree-sha1 = "591ad14ca2c777b07463b6bde3afb2bfe852e1be"
 uuid = "5b8099bc-c8ec-5219-889f-1d9e522a28bf"
 version = "0.1.0"
 
+[[DrWatson]]
+deps = ["FileIO", "LibGit2", "Pkg", "Random", "Requires"]
+git-tree-sha1 = "91fba54b62a5d935bf9f55f6ca5f0be70e09db0f"
+uuid = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
+version = "1.1.0"
+
 [[DualNumbers]]
 deps = ["Calculus", "LinearAlgebra", "NaNMath", "SpecialFunctions", "Test"]
 git-tree-sha1 = "e178a6768dad879ff1abfc1c612406856bb06ce0"
@@ -230,11 +236,17 @@ git-tree-sha1 = "06ddc21f85af9d9b2a7888f19df1d86f833c187b"
 uuid = "057dd010-8810-581a-b7be-e3fc3b93f78c"
 version = "0.6.0"
 
+[[FileIO]]
+deps = ["Pkg"]
+git-tree-sha1 = "351f001a78aa1b7ad2696e386e110b5abd071c71"
+uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+version = "1.0.7"
+
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
-git-tree-sha1 = "4c707c87ddd3199fc5624d5c98b2c706e4d00675"
+git-tree-sha1 = "bc45e8feb90728a35194f844ef6aadc688e31881"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.7.0"
+version = "0.7.1"
 
 [[ForwardDiff]]
 deps = ["CommonSubexpressions", "DiffResults", "DiffRules", "InteractiveUtils", "LinearAlgebra", "NaNMath", "Random", "SparseArrays", "SpecialFunctions", "StaticArrays", "Test"]
@@ -249,10 +261,10 @@ uuid = "069b7b12-0de2-55c6-9aab-29f3d0a68a2e"
 version = "1.0.0"
 
 [[GenericSVD]]
-deps = ["LinearAlgebra", "Random", "Test"]
-git-tree-sha1 = "8aa93c3f3d81562a8962047eafcc5712af0a0f59"
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "c59a30ef95fa4b5e0567c1911652e0c70a5d055c"
 uuid = "01680d73-4ee2-5a08-a1aa-533608c188bb"
-version = "0.2.1"
+version = "0.2.2"
 
 [[HierarchicalMatrices]]
 deps = ["LinearAlgebra"]
@@ -262,9 +274,9 @@ version = "0.2.0"
 
 [[InfiniteArrays]]
 deps = ["DSP", "FillArrays", "LazyArrays", "LinearAlgebra", "SparseArrays", "Statistics"]
-git-tree-sha1 = "43adee06bff571cb5585b003815b0f516b7d7161"
+git-tree-sha1 = "73b31db9d34bb7c2d407fcc1601ec360d0c44b9b"
 uuid = "4858937d-0d70-526a-a4dd-2d5cb5dd786c"
-version = "0.2.0"
+version = "0.3.0"
 
 [[Inflate]]
 deps = ["Pkg", "Printf", "Random", "Test"]
@@ -301,9 +313,9 @@ version = "0.21.0"
 
 [[LazyArrays]]
 deps = ["FillArrays", "LinearAlgebra", "MacroTools", "StaticArrays"]
-git-tree-sha1 = "631379228b52050c9c925d34db7d60b9073f2989"
+git-tree-sha1 = "0e8448cc1774a8d067ce6dc576fcfa61f44adb2f"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.11.0"
+version = "0.12.1"
 
 [[LibGit2]]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
@@ -499,9 +511,9 @@ uuid = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
 
 [[SimpleTraits]]
 deps = ["InteractiveUtils", "MacroTools"]
-git-tree-sha1 = "05bbf4484b975782e5e54bb0750f21f7f2f66171"
+git-tree-sha1 = "2bdf3b6300a9d66fe29ee8bb51ba100c4df9ecbc"
 uuid = "699a6c99-e7fa-54fc-8d76-47d257e15c1d"
-version = "0.9.0"
+version = "0.9.1"
 
 [[Sockets]]
 uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
@@ -517,10 +529,10 @@ deps = ["LinearAlgebra", "Random"]
 uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[SparseDiffTools]]
-deps = ["Adapt", "ArrayInterface", "BandedMatrices", "BlockBandedMatrices", "DiffEqDiffTools", "ForwardDiff", "LightGraphs", "LinearAlgebra", "Requires", "SparseArrays", "VertexSafeGraphs"]
-git-tree-sha1 = "c1ecded2bd37b1ce7db8e55a814c8aa63efa80fe"
+deps = ["Adapt", "ArrayInterface", "BandedMatrices", "BlockBandedMatrices", "DataStructures", "DiffEqDiffTools", "ForwardDiff", "LightGraphs", "LinearAlgebra", "Requires", "SparseArrays", "VertexSafeGraphs"]
+git-tree-sha1 = "c1c5fee07ff2d640aa132c777e89d0fdd6c9e777"
 uuid = "47a9eef4-7e08-11e9-0b38-333d64bd3804"
-version = "0.9.0"
+version = "0.9.1"
 
 [[SpecialFunctions]]
 deps = ["BinDeps", "BinaryProvider", "Libdl"]
