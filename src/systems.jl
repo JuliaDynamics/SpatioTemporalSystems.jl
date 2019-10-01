@@ -5,7 +5,7 @@ export SpatioTemporalSystem, STS, makesim
 @with_kw struct SpatioTemporalSystem{Model}
     N                 # Intr or NTuple{Int}: spatial extent (in pixels!)
     T::Real = 100     # total time to record timeseries for (in real time)
-    Δt::Real = 0.1    # sampling time in real time units
+    Δt::Real = 1      # sampling time in real time units
     S::Real = 10      # Skip time. saving data starts _after_ evolving for S
     ic = nothing      # initial condition: string, seed, array...
     p  = NamedTuple() # parameters of system (expected as NamedTuple)
