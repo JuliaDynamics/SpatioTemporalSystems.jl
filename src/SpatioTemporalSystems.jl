@@ -1,7 +1,10 @@
 module SpatioTemporalSystems
 
-using ApproxFun, DiffEqBase, LinearAlgebra, DiffEqOperators, OrdinaryDiffEq
+using Parameters
+const ICERROR = "Incorrect type for `ic`."
 
-include("kuramoto-sivashinsky.jl")
+include("systems.jl")
+include("barkley.jl")
+include("henon.jl")
 
 end
