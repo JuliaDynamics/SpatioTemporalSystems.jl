@@ -18,6 +18,10 @@ function makesim(sts::Union{STS{:CoupleHenon1D}, STS{:henon1d}})
     return @dict t sts U V
 end
 
+"""
+    coupled_henon_1D(u, v, S, T; a = 1.4, b = 0.3)
+Coupled henon maps in one dimension.
+"""
 function coupled_henon_1D(u, v, S, T; a = 1.4, b = 0.3)
     @assert length(u) == length(v)
     N = length(u)

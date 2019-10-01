@@ -1,8 +1,9 @@
 # SpatioTemporalSystems.jl
 This package provides a unified interface for simulating
 the temporal evolution of spatiotemporal dynamical systems (both deterministic as well as stochastic).
+Some of the systems are solved with DiffEq, while some others are just trivial stepping (since they are discrete).
 
-The provided API interplays excellently with DrWatson, see below.
+**The API has been designed to interplay excellently with DrWatson**
 
 ## API
 The API of this package is provided by one struct `SpatioTemporalSystem` and one function `makesim(sts)` with `sts` an instance of `SpatioTemporalSystem`.
@@ -69,4 +70,4 @@ Currently available systems are:
 
 * `:Barkley, :bk` : see the `bakley` function.
 * `:KuramotoSivashinsky, :ksiva` : see the `kuramoto_sivashinsky` function.
-* `:CoupledHenon1D, :henon1d`, see the `henon1d` function.
+* `:CoupledHenon1D, :henon1d`, see the `coupled_henon_1D` function.
