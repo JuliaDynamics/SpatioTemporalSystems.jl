@@ -5,10 +5,10 @@ using DiffEqOperators
 function makesim(sts::Union{STS{:KuramotoSivashinsky}, STS{:ksiva}})
     @unpack ic, T, S, Δt, N = sts
     L = try
-        @unpack L = sts.p
-    catch e
-        L = 22
-    end
+            L = sts.p.L
+        catch e
+            L = 22
+        end
     # prepare initial condition
     if ic isa Union{Nothing, Integer}
         # here we integrate a pre-determined initial condition
@@ -47,14 +47,14 @@ using `OrdinaryDiffEq`).
 """
 function kuramoto_sivashinsky(u, L, saveat)
     n = length(u)                  # number of gridpoints
-    S = Fourier(0..L)
-    T = ApproxFun.plan_transform(S, n)
-    Ti = ApproxFun.plan_itransform(S, n)
+    F = Fourier(0..L)
+    T = ApproxFun.plan_transform(F, n)
+    Ti = ApproxFun.plan_itransform(F, n)
 
     #Linear Part
-    D  = (Derivative(S) → S)[1:n,1:n]
-    D2 = Derivative(S,2)[1:n,1:n]
-    D4 = Derivative(S,4)[1:n,1:n]
+    D  = (Derivative(F) → F)[1:n,1:n]
+    D2 = Derivative(F,2)[1:n,1:n]
+    D4 = Derivative(F,4)[1:n,1:n]
     A = DiffEqArrayOperator(Diagonal(-D2-D4))
 
     #Nonlinear Part
@@ -62,11 +62,10 @@ function kuramoto_sivashinsky(u, L, saveat)
 
     params = (D, T, Ti)
     prob = SplitODEProblem(A, ks, T*u, (0.0, saveat[end]), params)
-
     sol = solve(prob, ETDRK4(), dt=Float64(saveat.step), saveat=saveat,
                 save_start = false, save_end = false)
-    @assert sol.t == saveat
-    return saveat, map(u -> Ti*u, sol.u)
+    # @assert sol.t == saveat
+    return sol.t, map(u -> Ti*u, sol.u)
 end
 
 struct KSFunctor{T}; tmp::Vector{T}; end

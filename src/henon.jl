@@ -7,8 +7,8 @@ function makesim(sts::Union{STS{:CoupleHenon1D}, STS{:henon1d}})
     # prepare initial condition...
     if ic isa Union{Nothing, Integer}
         rng = MersenneTwister(isnothing(ic) ? 42 : ic)
-        u = 0.1rand(rng, N)
-        v = 0.1rand(rng, N)
+        u = 0.01rand(rng, N)
+        v = 0.01rand(rng, N)
     elseif ic isa Tuple
         u, v = ic
     else

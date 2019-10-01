@@ -6,6 +6,6 @@ const ICERROR = "Incorrect type for `ic`."
 include("systems.jl")
 include("barkley.jl")
 include("henon.jl")
-# include("kuramoto-sivashinsky.jl")
+include("kuramoto-sivashinsky.jl")
 
 end
