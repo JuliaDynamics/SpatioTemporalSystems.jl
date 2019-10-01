@@ -1,34 +1,71 @@
 using Random
 
-barkley(T::Number, args...; kwargs...) =
-barkley(Float32, T, args...; kwargs...)
+function makesim(sts::Union{STS{:Barkley}, STS{:bk}})
+    t, U, V = barkley(sts.ic, sts.T, sts.Δt, sts.N; sts.p...)
+    return @dict t sts U V
+end
 
-function barkley(::Type{Ftype}, T, Δt, periodic=true;
-                tskip=100, Nx = 50, Ny = Nx,
-                a=0.75, b=0.06, ε=0.08, D=1/50, h=0.1,
-                seed = rand(1:1000), kwargs...
-                ) where {Ftype<:AbstractFloat}
-
-
-    @assert Δt/bk_integ_dt == round(Int, Δt/bk_integ_dt) "Δt must be multiple of the integration step (0.01)"
-    every = round(Int, Δt/bk_integ_dt)
+function barkley(ic, T::Real, Δt, N; kwargs...)
+    Nx, Ny = typeof(N) <: Tuple ? (N[1], N[2]) : (N, N)
+    FType = get(kwargs, :FType, Float32)
+    # Assertions
+    @assert Δt/BK_INTEG_DT == round(Int, Δt/BK_INTEG_DT) "Δt must be multiple of the integration step (0.01)"
+    every = round(Int, Δt/BK_INTEG_DT)
     @assert Nx ≥ 40
     @assert Ny ≥ 40
     @assert Nx%10==0
     @assert Ny%10==0
-    U = Vector{Array{Ftype,2}}()
-    V = Vector{Array{Ftype,2}}()
-    u = zeros(Ftype,Nx,Ny)
-    v = zeros(Ftype,Nx,Ny)
+    # prepare initial condition...
+    if ic isa Union{Nothing, Integer}
+        rng = MersenneTwister(isnothing(ic) ? 42 : ic)
+        αα, ββ = 10, 10
+        init = rand(rng,αα,ββ)
+        u = zeros(FType,Nx,Ny)
+        v = zeros(FType,Nx,Ny)
+        v .= u .= repeat(init, inner=(Nx÷αα,Ny÷ββ))
+        v .= v .> 0.2
+    elseif ic isa Tuple
+        u, v = ic
+    else
+        error(ICERROR)
+    end
+    return barkley(u, v, T, Δt; kwargs...)
+end
 
-    Random.seed!(seed)
-    init = rand(10,10)
-    Random.seed!()
-    αα, ββ = size(init)
+"""
+    barkley(U0, V0, T, Δt; kwargs...)
+Simulate the nonlinear Barkley model with initial conditions `U0, V0` for
+the fields `U, V`.
 
-    v .= u .= repeat(init, inner=(Nx÷αα,Ny÷ββ))
-    v .= v .> 0.2
-    Σ = zeros(Ftype, Nx, Ny, 2)
+## Keywords
+```
+periodic = true, FType = Float32,
+skip=100, a=0.75, b=0.06, ε=0.08, D=1/50, h=0.1
+```
+The simulation uses `periodic` boundary conditions by default, or absorbing otherwise.
+`skip` is an integer, multiple of `Δt`, which notes how many
+`Δt` frames to skip before starting to save data. `FType` is the
+number type of the output fields.
+`a,b,ε,D` are formal parameters of the system while `h` is the spatial sampling
+(the evolution algorithm is the one from the Scholarpedia entry:
+http://www.scholarpedia.org/article/Barkley_model )
+(notice that the integration time is fixed to 0.01, irrespectively of `Δt`).
+
+`a` can also be a `Matrix` (of size `Nx×Ny`), to e.g. represent inhomogeneity.
+"""
+function barkley(u::Matrix, v::Matrix, T, Δt; periodic=true,
+                  skip=100, a=0.75, b=0.06, ε=0.08, D=1/50, h=0.1,
+                  )
+
+    FType = eltype(u)
+    bk_integ_dt = FType(BK_INTEG_DT)
+    total = T÷Δt # how many steps to save
+    Nx, Ny = size(u)
+    @assert size(u) == size(v)
+    u, v = copy(u), copy(v)
+    U = Matrix{FType}[]
+    V = Matrix{FType}[]
+    Σ = zeros(FType, Nx, Ny, 2)
     r,s = 1,2
 
     function F(u, uth)
@@ -38,20 +75,6 @@ function barkley(::Type{Ftype}, T, Δt, periodic=true;
             (u + (bk_integ_dt/ε)*u*(u-uth))/(1+(bk_integ_dt/ε)*u*(u-uth))
         end
     end
-
-struct Barkley{T}
-    periodic::Bool
-    a::T
-    b::T
-    D::T
-    h::T
-    Nx::Int
-    Ny::Int
-    s::Int8
-    r::Int8
-    Σ::Array{T, 3}
-end
- # this is so fucking complicated, what the hell is Σ
 
     function periodic_step!(u,v,Σ,a,b,Nx,Ny,s,r,D,bk_integ_dt,h)
         @inbounds for i=1:Nx, j=1:Ny
@@ -80,17 +103,19 @@ end
         end
     end
 
-    for m=1:(T*every+tskip*every)
+    for m=1:(total*every+skip*every)
         periodic ? periodic_step!(u,v,Σ,a,b,Nx,Ny,s,r,D,bk_integ_dt,h) :
                    constant_step!(u,v,Σ,a,b,Nx,Ny,s,r,D,bk_integ_dt,h)
         r,s = s,r
-        if m > tskip*every && (m-tskip*every) % every == 0
-            push!(U,copy(u))
-            push!(V,copy(v))
+        if m > skip*every && (m-skip*every) % every == 0
+            # TODO: Optimize this, we know before hand the amount...
+            push!(U, copy(u))
+            push!(V, copy(v))
         end
     end
-    return U,V
+    return timevector, U, V
 end
 
 _get_a(a::Number, i, j) = a
 _get_a(a::AbstractMatrix, i, j) = @inbounds a[i,j]
+const BK_INTEG_DT = 0.01
