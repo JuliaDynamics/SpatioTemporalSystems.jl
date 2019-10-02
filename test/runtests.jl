@@ -1,4 +1,4 @@
-using Test, SpatioTemporalSystems, DrWatson
+using Test, SpatioTemporalSystems, DrWatson, Parameters
 # Test:
 
 sts = STS{:bk}(N = 100, T = 1000, Δt = 0.1)
@@ -43,3 +43,27 @@ sim = makesim(sts)
 # ax.set_ylabel("x")
 # ax.set_xlabel("t")
 # gcf().tight_layout()
+
+
+# %% KdV
+N = 100  # number of gridpoints
+Δt = 0.1
+T = 10.0
+x = range(0, 2π, length = N)
+u0 = cos.(x)
+
+sts = STS{:kdv}(N = N, T = T, Δt = Δt, S = 0)
+savename(sts)
+
+sim = makesim(sts)
+@unpack u, t = sim
+
+using PyPlot
+figure()
+U = hcat(u...)
+imshow(U)
+gca().set_aspect("auto")
+ylabel("x")
+xlabel("t")
+colorbar()
+gcf().tight_layout()

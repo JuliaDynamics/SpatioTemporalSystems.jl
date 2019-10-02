@@ -7,5 +7,6 @@ include("systems.jl")
 include("barkley.jl")
 include("henon.jl")
 include("kuramoto-sivashinsky.jl")
+include("kdv.jl")
 
 end
