@@ -26,7 +26,7 @@ function makesim(sts::Union{STS{:KuramotoSivashinsky}, STS{:ksiva}})
     saveat = S:Δt:(T+S)
     t, u = kuramoto_sivashinsky(u0, L, saveat)
     t = 0:Δt:T
-    return @dict u t sts
+    return @strdict u t sts
 end
 
 

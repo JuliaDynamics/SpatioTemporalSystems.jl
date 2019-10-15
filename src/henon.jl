@@ -15,7 +15,7 @@ function makesim(sts::Union{STS{:CoupleHenon1D}, STS{:henon1d}})
         error(ICERROR)
     end
     t, U, V = coupled_henon_1D(u, v, S, T; sts.p...)
-    return @dict t sts U V
+    return @strdict t sts U V
 end
 
 """

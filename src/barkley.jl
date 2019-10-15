@@ -26,7 +26,7 @@ function makesim(sts::Union{STS{:Barkley}, STS{:bk}})
         error(ICERROR)
     end
     t, U, V = barkley(u, v, S, T, Δt; sts.p...)
-    return @dict t sts U V
+    return @strdict t sts U V
 end
 
 """
