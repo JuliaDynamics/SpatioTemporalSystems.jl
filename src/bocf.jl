@@ -1,3 +1,5 @@
+include("fast_convolutions.jl")
+
 function makesim(sts::Union{STS{:BuenoOrovioCherryFenton}, STS{:bocf}})
     @unpack N, T, Δt, S, ic = sts
     Ttr = S
@@ -11,11 +13,12 @@ function makesim(sts::Union{STS{:BuenoOrovioCherryFenton}, STS{:bocf}})
 
     # here we get the initial condition
     if ic isa Union{Integer, Nothing} # random seed
-        initialize_random!(u, ic, Nx, Ny)
+        initialize_random!(u, ic isa Integer ? ic : 42)
     elseif ic == "spiral_virtheart"
-        initialize_spiral_virtheart!(u, v, Nx, Ny)
+        initialize_spiral_virtheart!(u, v)
     elseif ic == "spiral"
-        initialize_spiral!(u, v, w, Nx, Ny)
+        initialize_spiral!(u, v, w)
+    else error("unknown i.c.")
     end
 
     t, U, V, W, S = bocf(u, v, s, w, Ttr, T, Δt; sts.p...)
@@ -43,18 +46,24 @@ The keywords of the BOCF model are (given to `sts.p` as a `NamedTuple`)
   See the source code for the actual parameters (too many to list).
 * `dt = Δt` : integration timestep (NOT the sampling time `Δt`).
 """
-function bofc(...; pset = "tnpp", D = 0.2, dt = Δt)
+function bocf(u, v, s, w, Ttr, T, Δt;
+        pset = "tnpp", D = 0.2, dt = Δt)
+        # TODO: what is a good default dt?
 
     @assert Δt ≥ dt
     simpars = bocf_parameters(pset)
     pushfirst!(simpars, D) # add diffusion constant
 
+    Nx, Ny = size(u)
     olds = [copy(u), copy(v), copy(w), copy(s)]
     derivs = [copy(u), copy(v), copy(w), copy(s)]
     aux = [zeros(Nx, Ny) for i in 1:7]
     currents = [zeros(Nx, Ny) for i in 1:3]
 
-    for j in 1:S÷dt
+    TU = typeof(u)
+    U, V, W, S = TU[], TU[], TU[], TU[]
+
+    for j in 1:Ttr÷dt
         bocf_step!(u, v, w, s, olds, aux, currents, derivs, simpars, dt)
     end
     push!(U, copy(w)); push!(V, copy(v)); push!(W, copy(w)); push!(S, copy(s))
@@ -70,10 +79,10 @@ end
 
 function bocf_step!(u, v, w, s, olds, aux, currents, derivs, simpars, dt)
 
-    D, u_o, u_u, theta_v, theta_w, theta_v_minus, theta_o, tau_v1_minus,
-    theta_v2_minus, k_w_minus, u_w_minus, tau_w_plus, tau_fi, tau_o1, tau_o2,
-    tau_so1, tau_so2, k_so, u_so, tau_s1, tau_s2, k_s, u_s, tau_si,
-    tau_winfinity, w_inf_star = simpars
+    D,u_o,u_u,theta_v,theta_w,theta_v_minus,theta_o,tau_v1_minus,tau_v2_minus,
+    tau_v_plus,tau_w1_minus,tau_w2_minus,k_w_minus,u_w_minus,tau_w_plus,
+    tau_fi,tau_o1,tau_o2,tau_so1,tau_so2,k_so,u_so,tau_s1,tau_s2,k_s,
+    u_s,tau_si,tau_winfinity,w_inf_star = simpars
 
     # update old fields (only necessary for boundary conditions)
     # TODO: this can be optimized to only update the values
@@ -87,7 +96,7 @@ function bocf_step!(u, v, w, s, olds, aux, currents, derivs, simpars, dt)
     J_fi, J_so, J_si = currents
 
     # Compute currents
-    _current_fi!(J_fi, u, v, theta_v, u_u)
+    _current_fi!(J_fi, u, v, theta_v, u_u, tau_fi)
     _current_so!(J_so, u, u_o, theta_w, tau_o, tau_so)
     _current_si!(J_si, u, theta_w, w, s, tau_si)
 
@@ -108,7 +117,7 @@ function bocf_step!(u, v, w, s, olds, aux, currents, derivs, simpars, dt)
 end
 
 
-function set_boundaries!(fields, old_fields)
+function _set_boundaries!(fields, old_fields)
     # TODO: We have to check if this is correct, because I took this from
     # Python code, which interchanges columns with rows
     # TODO: What is happening in this function seems really weird for me.
@@ -135,7 +144,7 @@ end
 const Λ = [1  4  1;
            4 -20 4;
            1  4  1]./6
-laplace(u) = fastconv(u, Λ)
+laplace(u) = fastconv(u, Λ)[2:end-1, 2:end-1]
 
 H(y) = Float64(y > 0)
 
@@ -143,7 +152,7 @@ H(y) = Float64(y > 0)
 # the operations, and if statements on the result of H(), so that
 # all other operations are not done
 
-function _current_fi!(cfi, u, v, theta_v, u_u)
+function _current_fi!(cfi, u, v, theta_v, u_u, tau_fi)
     @. cfi = -v * H(u - theta_v) * (u - theta_v) * (u_u - u) / tau_fi
 end
 
@@ -158,10 +167,10 @@ end
 function _update_constants!(aux, u, v, w, s, simpars)
     tau_v_minus, tau_w_minus, tau_so, tau_s, tau_o, v_infinity, w_infinity = aux
 
-    D, u_o, u_u, theta_v, theta_w, theta_v_minus, theta_o, tau_v1_minus,
-    theta_v2_minus, k_w_minus, u_w_minus, tau_w_plus, tau_fi, tau_o1, tau_o2,
-    tau_so1, tau_so2, k_so, u_so, tau_s1, tau_s2, k_s, u_s, tau_si,
-    tau_winfinity, w_inf_star = simpars
+    D,u_o,u_u,theta_v,theta_w,theta_v_minus,theta_o,tau_v1_minus,tau_v2_minus,
+    tau_v_plus,tau_w1_minus,tau_w2_minus,k_w_minus,u_w_minus,tau_w_plus,
+    tau_fi,tau_o1,tau_o2,tau_so1,tau_so2,k_so,u_so,tau_s1,tau_s2,k_s,
+    u_s,tau_si,tau_winfinity,w_inf_star = simpars
 
     @. tau_v_minus = (1.0 - H(u - theta_v_minus)) * tau_v1_minus + H(u - theta_v_minus) * tau_v2_minus
     @. tau_w_minus = tau_w1_minus + (tau_w2_minus - tau_w1_minus) * (1 + tanh(k_w_minus * (u - u_w_minus))) / 2.0
@@ -177,43 +186,45 @@ end
 ################################################
 # Initial conditions
 ################################################
-function initialize_random!(u, ic, Nx, Ny)
-    initialize_random!(u, ic, Nx, Ny)
-    rng = MersenneTwister(ic isa Integer ? ic : 42)
+function initialize_random!(u, ic)
+    Nx, Ny = size(u)
+    rng = MersenneTwister(ic)
     n = 1 # ceil(Int, 1/deltaX), what is deltaX ?
     u .= rand(rng, Nx, Ny)
 end
 
-function initialize_spiral_virtheart!(u, v, Nx, Ny)
+function initialize_spiral_virtheart!(u, v)
+    Nx, Ny = size(u)
     for i in 1:Ny
-        for j in (Nx//2):Nx
-            t  = (i - Ny//2)*0.1
-            t2 = (i - Ny//2 + 20)*0.05
+        for j in (Nx÷2):Nx
+            t  = (i - Ny÷2)*0.1
+            t2 = (i - Ny÷2 + 20)*0.05
             u[j, i] = 1.5*exp(-t*t)
             v[j, i] = 1.0 - 0.9*exp(-t2*t2)
         end
     end
 end
 
-function initialize_spiral!(u, v, w, Nx, Ny)
-    for x in 1:Nx//4
+function initialize_spiral!(u, v, w)
+    Nx, Ny = size(u)
+    for x in 1:(Nx÷4)
         for y in 1:Ny
             u[x, y] = 0.5
         end
     end
-    for x in (3Nx//4):Nx
+    for x in (3Nx÷4):Nx
         for y in 1:Ny
             u[x, y] = 0.5
         end
     end
 
-    for x in 1:Nx//2
-        for y in 1:(2Ny//5)
+    for x in 1:(Nx÷2)
+        for y in 1:(2Ny÷5)
             v[x, y] = 0.5
         end
     end
-    for x in (Nx//2):Nx
-        for y in (3Ny//5):Ny
+    for x in (Nx÷2):Nx
+        for y in (3Ny÷5):Ny
             v[x, y] = 0.5
         end
     end
@@ -374,8 +385,8 @@ function bocf_parameters(ic)
     end
 
     simpars =
-    [u_o, u_u, theta_v, theta_w, theta_v_minus, theta_o, tau_v1_minus,
-     theta_v2_minus, k_w_minus, u_w_minus, tau_w_plus, tau_fi, tau_o1, tau_o2,
-     tau_so1, tau_so2, k_so, u_so, tau_s1, tau_s2, k_s, u_s, tau_si,
-     tau_winfinity, w_inf_star]
+    [u_o,u_u,theta_v,theta_w,theta_v_minus,theta_o,tau_v1_minus,tau_v2_minus,
+    tau_v_plus,tau_w1_minus,tau_w2_minus,k_w_minus,u_w_minus,tau_w_plus,
+    tau_fi,tau_o1,tau_o2,tau_so1,tau_so2,k_so,u_so,tau_s1,tau_s2,k_s,
+    u_s,tau_si,tau_winfinity,w_inf_star]
  end
