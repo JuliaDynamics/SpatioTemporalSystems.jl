@@ -1,7 +1,8 @@
 using Test, SpatioTemporalSystems, DrWatson
 # Test:
 
-sts = STS{:bocf}(N = 100, T = 10, Δt = 0.1, S = 0, ic = "spiral")
+p = (dt = 0.05,)
+sts = STS{:bocf}(N = 100, T = 10, Δt = 1, S = 500, ic = "spiral", p=p)
 d = makesim(sts)
 
 U = d["U"]

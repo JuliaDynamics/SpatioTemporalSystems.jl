@@ -217,7 +217,6 @@ function initialize_spiral!(u, v, w)
             u[x, y] = 0.5
         end
     end
-
     for x in 1:(Nx÷2)
         for y in 1:(2Ny÷5)
             v[x, y] = 0.5
