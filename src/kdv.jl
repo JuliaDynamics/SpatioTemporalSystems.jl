@@ -2,6 +2,8 @@ using ApproxFun, OrdinaryDiffEq
 using LinearAlgebra
 using DiffEqOperators
 
+# The problem is that kdv needs infinite amount of time to solve...
+
 function makesim(sts::Union{STS{:KortewegDeVries}, STS{:kdv}})
     @unpack ic, T, S, Δt, N = sts
     c = try
