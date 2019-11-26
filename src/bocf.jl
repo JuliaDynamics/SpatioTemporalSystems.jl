@@ -1,3 +1,10 @@
+#=
+BOCF solver.
+
+Notice that the unicode symbol "⁻" (a minus exponent, e.g. τ⁻), represents
+"minus", e.g. `tau_minus` is in fact `τ⁻`.
+=#
+
 include("fast_convolutions.jl")
 
 function makesim(sts::Union{STS{:BuenoOrovioCherryFenton}, STS{:bocf}})
@@ -79,10 +86,10 @@ end
 
 function bocf_step!(u, v, w, s, olds, aux, currents, derivs, simpars, dt)
 
-    D,u_o,u_u,theta_v,theta_w,theta_v_minus,theta_o,tau_v1_minus,tau_v2_minus,
-    tau_v_plus,tau_w1_minus,tau_w2_minus,k_w_minus,u_w_minus,tau_w_plus,
-    tau_fi,tau_o1,tau_o2,tau_so1,tau_so2,k_so,u_so,tau_s1,tau_s2,k_s,
-    u_s,tau_si,tau_winfinity,w_inf_star = simpars
+    D,u_o,u_u,θ_v,θ_w,θ_v⁻,θ_o,τ_v1⁻,τ_v2⁻,
+    τ_v_plus,τ_w1⁻,τ_w2⁻,k_w⁻,u_w⁻,τ_w_plus,
+    τ_fi,τ_o1,τ_o2,τ_so1,τ_so2,k_so,u_so,τ_s1,τ_s2,k_s,
+    u_s,τ_si,τ_winfinity,w_inf_star = simpars
 
     # update old fields (only necessary for boundary conditions)
     # TODO: this can be optimized to only update the values
@@ -92,20 +99,20 @@ function bocf_step!(u, v, w, s, olds, aux, currents, derivs, simpars, dt)
     end
 
     _update_constants!(aux, u, v, w, s, simpars)
-    tau_v_minus, tau_w_minus, tau_so, tau_s, tau_o, v_infinity, w_infinity = aux
+    τ_v⁻, τ_w⁻, τ_so, τ_s, τ_o, v_infinity, w_infinity = aux
     J_fi, J_so, J_si = currents
 
     # Compute currents
-    _current_fi!(J_fi, u, v, theta_v, u_u, tau_fi)
-    _current_so!(J_so, u, u_o, theta_w, tau_o, tau_so)
-    _current_si!(J_si, u, theta_w, w, s, tau_si)
+    _current_fi!(J_fi, u, v, θ_v, u_u, τ_fi)
+    _current_so!(J_so, u, u_o, θ_w, τ_o, τ_so)
+    _current_si!(J_si, u, θ_w, w, s, τ_si)
 
     dudt, dvdt, dwdt, dsdt = derivs
     lap = laplace(u)
     @. dudt = D * lap - (J_fi + J_so + J_si)
-    @. dvdt = (1.0 - H(u - theta_v)) * (v_infinity - v) / tau_v_minus - H(u - theta_v) * v / tau_v_plus
-    @. dwdt = (1.0 - H(u - theta_w)) * (w_infinity - w) / tau_w_minus - H(u - theta_w) * w / tau_w_plus
-    @. dsdt = ((1.0 + tanh(k_s * (u - u_s))) / 2.0 - s) / tau_s
+    @. dvdt = (1.0 - H(u - θ_v)) * (v_infinity - v) / τ_v⁻ - H(u - θ_v) * v / τ_v_plus
+    @. dwdt = (1.0 - H(u - θ_w)) * (w_infinity - w) / τ_w⁻ - H(u - θ_w) * w / τ_w_plus
+    @. dsdt = ((1.0 + tanh(k_s * (u - u_s))) / 2.0 - s) / τ_s
 
     @. u += dt * dudt
     @. v += dt * dvdt
@@ -152,34 +159,34 @@ H(y) = Float64(y > 0)
 # the operations, and if statements on the result of H(), so that
 # all other operations are not done
 
-function _current_fi!(cfi, u, v, theta_v, u_u, tau_fi)
-    @. cfi = -v * H(u - theta_v) * (u - theta_v) * (u_u - u) / tau_fi
+function _current_fi!(cfi, u, v, θ_v, u_u, τ_fi)
+    @. cfi = -v * H(u - θ_v) * (u - θ_v) * (u_u - u) / τ_fi
 end
 
-function _current_so!(cso, u, u_o, theta_w, tau_o, tau_so)
-    @. cso = (u - u_o) * (1 - H(u - theta_w)) / tau_o + H(u - theta_w) / tau_so
+function _current_so!(cso, u, u_o, θ_w, τ_o, τ_so)
+    @. cso = (u - u_o) * (1 - H(u - θ_w)) / τ_o + H(u - θ_w) / τ_so
 end
 
-function _current_si!(csi, u, theta_w, w, s, tau_si)
-    @. csi = -H(u - theta_w) * w * s / tau_si
+function _current_si!(csi, u, θ_w, w, s, τ_si)
+    @. csi = -H(u - θ_w) * w * s / τ_si
 end
 
 function _update_constants!(aux, u, v, w, s, simpars)
-    tau_v_minus, tau_w_minus, tau_so, tau_s, tau_o, v_infinity, w_infinity = aux
+    τ_v⁻, τ_w⁻, τ_so, τ_s, τ_o, v_infinity, w_infinity = aux
 
-    D,u_o,u_u,theta_v,theta_w,theta_v_minus,theta_o,tau_v1_minus,tau_v2_minus,
-    tau_v_plus,tau_w1_minus,tau_w2_minus,k_w_minus,u_w_minus,tau_w_plus,
-    tau_fi,tau_o1,tau_o2,tau_so1,tau_so2,k_so,u_so,tau_s1,tau_s2,k_s,
-    u_s,tau_si,tau_winfinity,w_inf_star = simpars
+    D,u_o,u_u,θ_v,θ_w,θ_v⁻,θ_o,τ_v1⁻,τ_v2⁻,
+    τ_v_plus,τ_w1⁻,τ_w2⁻,k_w⁻,u_w⁻,τ_w_plus,
+    τ_fi,τ_o1,τ_o2,τ_so1,τ_so2,k_so,u_so,τ_s1,τ_s2,k_s,
+    u_s,τ_si,τ_winfinity,w_inf_star = simpars
 
-    @. tau_v_minus = (1.0 - H(u - theta_v_minus)) * tau_v1_minus + H(u - theta_v_minus) * tau_v2_minus
-    @. tau_w_minus = tau_w1_minus + (tau_w2_minus - tau_w1_minus) * (1 + tanh(k_w_minus * (u - u_w_minus))) / 2.0
-    @. tau_so      = tau_so1      + (tau_so2      - tau_so1)      * (1 + tanh(k_so      * (u - u_so)))      / 2.0
-    @. tau_s = (1.0 - H(u - theta_w)) * tau_s1 + H(u - theta_w) * tau_s2
-    @. tau_o = (1.0 - H(u - theta_o)) * tau_o1 + H(u - theta_o) * tau_o2
+    @. τ_v⁻ = (1.0 - H(u - θ_v⁻)) * τ_v1⁻ + H(u - θ_v⁻) * τ_v2⁻
+    @. τ_w⁻ = τ_w1⁻ + (τ_w2⁻ - τ_w1⁻) * (1 + tanh(k_w⁻ * (u - u_w⁻))) / 2.0
+    @. τ_so      = τ_so1      + (τ_so2      - τ_so1)      * (1 + tanh(k_so      * (u - u_so)))      / 2.0
+    @. τ_s = (1.0 - H(u - θ_w)) * τ_s1 + H(u - θ_w) * τ_s2
+    @. τ_o = (1.0 - H(u - θ_o)) * τ_o1 + H(u - θ_o) * τ_o2
 
-    @. v_infinity = Float64(u .< theta_v_minus)
-    @. w_infinity = (1.0 - H(u - theta_o)) * (1.0 - u / tau_winfinity) + H(u - theta_o) * w_inf_star
+    @. v_infinity = Float64(u .< θ_v⁻)
+    @. w_infinity = (1.0 - H(u - θ_o)) * (1.0 - u / τ_winfinity) + H(u - θ_o) * w_inf_star
     return
 end
 
@@ -237,155 +244,155 @@ function bocf_parameters(ic)
     if ic == "tnpp"
         u_o = 0.0
         u_u = 1.58
-        theta_v = 0.3
-        theta_w = 0.015
-        theta_v_minus = 0.015
-        theta_o = 0.006
-        tau_v1_minus = 60
-        tau_v2_minus = 1150
-        tau_v_plus = 1.4506
-        tau_w1_minus = 70
-        tau_w2_minus = 20
-        k_w_minus = 65
-        u_w_minus = 0.03
-        tau_w_plus = 280
-        tau_fi = 0.11
-        tau_o1 = 6
-        tau_o2 = 6
-        tau_so1 = 43
-        tau_so2 = 0.2
+        θ_v = 0.3
+        θ_w = 0.015
+        θ_v⁻ = 0.015
+        θ_o = 0.006
+        τ_v1⁻ = 60
+        τ_v2⁻ = 1150
+        τ_v_plus = 1.4506
+        τ_w1⁻ = 70
+        τ_w2⁻ = 20
+        k_w⁻ = 65
+        u_w⁻ = 0.03
+        τ_w_plus = 280
+        τ_fi = 0.11
+        τ_o1 = 6
+        τ_o2 = 6
+        τ_so1 = 43
+        τ_so2 = 0.2
         k_so = 2
         u_so = 0.65
-        tau_s1 = 2.7342
-        tau_s2 = 3
+        τ_s1 = 2.7342
+        τ_s2 = 3
         k_s = 2.0994
         u_s = 0.9087
-        tau_si = 2.8723
-        tau_winfinity = 0.07
+        τ_si = 2.8723
+        τ_winfinity = 0.07
         w_inf_star = 0.94
     elseif ic == "virtheart"
         u_o = 0
         u_u = 1.58
-        theta_v = 0.3
-        theta_w = 0.015
-        theta_v_minus = 0.015
-        theta_o = 0.006
-        tau_v1_minus = 60
-        tau_v2_minus = 60
-        tau_v_plus = 1.4506
-        tau_w1_minus = 170
-        tau_w2_minus = 120
-        k_w_minus = 65
-        u_w_minus = 0.03
-        tau_w_plus = 280
-        tau_fi = 0.2
-        tau_o1 = 6
-        tau_o2 = 6
-        tau_so1 = 43
-        tau_so2 = 0.2
+        θ_v = 0.3
+        θ_w = 0.015
+        θ_v⁻ = 0.015
+        θ_o = 0.006
+        τ_v1⁻ = 60
+        τ_v2⁻ = 60
+        τ_v_plus = 1.4506
+        τ_w1⁻ = 170
+        τ_w2⁻ = 120
+        k_w⁻ = 65
+        u_w⁻ = 0.03
+        τ_w_plus = 280
+        τ_fi = 0.2
+        τ_o1 = 6
+        τ_o2 = 6
+        τ_so1 = 43
+        τ_so2 = 0.2
         k_so = 2
         u_so = 0.65
-        tau_s1 = 2.7342
-        tau_s2 = 3
+        τ_s1 = 2.7342
+        τ_s2 = 3
         k_s = 2.0994
         u_s = 0.9087
-        tau_si = 3.8723
-        tau_winfinity = 0.07
+        τ_si = 3.8723
+        τ_winfinity = 0.07
         w_inf_star = 0.94
     elseif ic == "thomas"
         u_o = 0#13.03
-        tau_o1 = 33.25
-        theta_w = 800
-        tau_so2 = 0.85
-        tau_v1_minus = 0.45
-        tau_s1 = 0.04
-        tau_w1_minus = 0.45
+        τ_o1 = 33.25
+        θ_w = 800
+        τ_so2 = 0.85
+        τ_v1⁻ = 0.45
+        τ_s1 = 0.04
+        τ_w1⁻ = 0.45
         u_s = 0.04
-        u_w_minus = 0.45
+        u_w⁻ = 0.45
         w_inf_star = 0.04
-        tau_fi = 12.5
-        theta_v = 1250
-        tau_so1 = 0.13
-        theta_o = 0.45
+        τ_fi = 12.5
+        θ_v = 1250
+        τ_so1 = 0.13
+        θ_o = 0.45
         u_so = 0.04
-        tau_v_plus = 0.45
+        τ_v_plus = 0.45
         k_s = 0.04
-        k_w_minus = 0.45
-        tau_winfinity = 0.04
+        k_w⁻ = 0.45
+        τ_winfinity = 0.04
         u_u = 19.6
-        tau_o2 = 29
-        theta_v_minus = 40
+        τ_o2 = 29
+        θ_v⁻ = 40
         k_so = 0.04
-        tau_v2_minus = 0.45
-        tau_s2 = 0.04
-        tau_w2_minus = 0.45
-        tau_si = 0.04
-        tau_w_plus = 0.45
+        τ_v2⁻ = 0.45
+        τ_s2 = 0.04
+        τ_w2⁻ = 0.45
+        τ_si = 0.04
+        τ_w_plus = 0.45
     elseif ic == "epi"
         u_o = 0
         u_u = 1.55
-        theta_v = 0.3
-        theta_w = 0.13
-        theta_v_minus = 0.006
-        theta_o = 0.006
-        tau_v1_minus = 60
-        tau_v2_minus = 1150
-        tau_v_plus = 1.4506
-        tau_w1_minus = 60
-        tau_w2_minus = 15
-        k_w_minus = 65
-        u_w_minus = 0.03
-        tau_w_plus = 200
-        tau_fi = 0.11
-        tau_o1 = 400
-        tau_o2 = 6
-        tau_so1 = 30.0181
-        tau_so2 = 0.9957
+        θ_v = 0.3
+        θ_w = 0.13
+        θ_v⁻ = 0.006
+        θ_o = 0.006
+        τ_v1⁻ = 60
+        τ_v2⁻ = 1150
+        τ_v_plus = 1.4506
+        τ_w1⁻ = 60
+        τ_w2⁻ = 15
+        k_w⁻ = 65
+        u_w⁻ = 0.03
+        τ_w_plus = 200
+        τ_fi = 0.11
+        τ_o1 = 400
+        τ_o2 = 6
+        τ_so1 = 30.0181
+        τ_so2 = 0.9957
         k_so = 2.0458
         u_so = 0.65
-        tau_s1 = 2.7342
-        tau_s2 = 16
+        τ_s1 = 2.7342
+        τ_s2 = 16
         k_s = 2.0994
         u_s = 0.9087
-        tau_si = 1.8875
-        tau_winfinity = 0.07
+        τ_si = 1.8875
+        τ_winfinity = 0.07
         w_inf_star = 0.94
     elseif ic == "pb"
         u_o = 0
         u_u = 1.45
-        theta_v = 0.35
-        theta_w = 0.13
-        theta_v_minus = 0.175
-        theta_o = 0.006
-        tau_v1_minus = 10
-        tau_v2_minus = 1150
-        tau_v_plus = 1.4506
-        tau_w1_minus = 140
-        tau_w2_minus = 6.25
-        k_w_minus = 65
-        u_w_minus = 0.015
-        tau_w_plus = 326
-        tau_fi = 0.105
-        tau_o1 = 400
-        tau_o2 = 6
-        tau_so1 = 30.0181
-        tau_so2 = 0.9957
+        θ_v = 0.35
+        θ_w = 0.13
+        θ_v⁻ = 0.175
+        θ_o = 0.006
+        τ_v1⁻ = 10
+        τ_v2⁻ = 1150
+        τ_v_plus = 1.4506
+        τ_w1⁻ = 140
+        τ_w2⁻ = 6.25
+        k_w⁻ = 65
+        u_w⁻ = 0.015
+        τ_w_plus = 326
+        τ_fi = 0.105
+        τ_o1 = 400
+        τ_o2 = 6
+        τ_so1 = 30.0181
+        τ_so2 = 0.9957
         k_so = 2.0458
         u_so = 0.65
-        tau_s1 = 2.7342
-        tau_s2 = 16
+        τ_s1 = 2.7342
+        τ_s2 = 16
         k_s = 2.0994
         u_s = 0.9087
-        tau_si = 1.8875
-        tau_winfinity = 0.175
+        τ_si = 1.8875
+        τ_winfinity = 0.175
         w_inf_star = 0.9
     else
         error("Unknown parameter set")
     end
 
     simpars =
-    [u_o,u_u,theta_v,theta_w,theta_v_minus,theta_o,tau_v1_minus,tau_v2_minus,
-    tau_v_plus,tau_w1_minus,tau_w2_minus,k_w_minus,u_w_minus,tau_w_plus,
-    tau_fi,tau_o1,tau_o2,tau_so1,tau_so2,k_so,u_so,tau_s1,tau_s2,k_s,
-    u_s,tau_si,tau_winfinity,w_inf_star]
+    [u_o,u_u,θ_v,θ_w,θ_v⁻,θ_o,τ_v1⁻,τ_v2⁻,
+    τ_v_plus,τ_w1⁻,τ_w2⁻,k_w⁻,u_w⁻,τ_w_plus,
+    τ_fi,τ_o1,τ_o2,τ_so1,τ_so2,k_so,u_so,τ_s1,τ_s2,k_s,
+    u_s,τ_si,τ_winfinity,w_inf_star]
  end
