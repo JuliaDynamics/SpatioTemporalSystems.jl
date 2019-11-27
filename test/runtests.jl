@@ -32,7 +32,8 @@ sts = STS{:ksiva}(N = N, ic = u0, T = T, Δt = Δt, p = (L = L,))
 savename(sts)
 
 sim = makesim(sts)
-@unpack u, t = sim
+u = sim["u"]
+# @unpack u, t = sim
 
 # using PyPlot
 # ax = gca()

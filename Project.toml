@@ -1,7 +1,7 @@
 name = "SpatioTemporalSystems"
 uuid = "1bf980ca-1bf9-4bd6-997f-adbb0489c6d4"
 repo = "https://github.com/JuliaDynamics/SpatioTemporalSystems.jl.git"
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 ApproxFun = "28f2ccd6-bb30-5033-b560-165f7b14dc2f"
