@@ -4,7 +4,7 @@ using Test, SpatioTemporalSystems, DrWatson
 sts = STS{:bk}(N = 100, T = 1000, Δt = 0.1)
 d = makesim(sts)
 
-U = d[:U]
+U = d["U"]
 
 # using PyPlot
 # figure()
@@ -13,7 +13,7 @@ U = d[:U]
 # %% Henon map
 sts = STS{:henon1d}(ic = 4, N = 200, T = 400, S = 1000)
 d = makesim(sts)
-u = d[:U]
+u = d["U"]
 #
 # using PyPlot
 # figure()
@@ -32,7 +32,8 @@ sts = STS{:ksiva}(N = N, ic = u0, T = T, Δt = Δt, p = (L = L,))
 savename(sts)
 
 sim = makesim(sts)
-@unpack u, t = sim
+u = sim["u"]
+# @unpack u, t = sim
 
 # using PyPlot
 # ax = gca()

@@ -19,3 +19,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+The code part for computing fast convolutions of 2D arrays (`fast_convolutions.jl` file) is taken from https://github.com/aamini/FastConv.jl and is copyrighted under MIT (same license as above) to Alexander Amini (copyrighted 2016).

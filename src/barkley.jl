@@ -30,7 +30,7 @@ function makesim(sts::Union{STS{:Barkley}, STS{:bk}})
 end
 
 """
-    barkley(U0, V0, S, T, Δt; kwargs...)
+    barkley(U0, V0, S, T, Δt; kwargs...) → t, U, V
 Simulate the nonlinear Barkley model with initial conditions `U0, V0` for
 the fields `U, V`.
 
