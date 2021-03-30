@@ -68,6 +68,6 @@ Each system also has a low-level function that explicitly describes the paramete
 
 Currently available systems are:
 
-* `:Barkley, :bk` : see the `bakley` function.
+* `:Barkley, :bk` : see the `barkley` function.
 * `:KuramotoSivashinsky, :ksiva` : see the `kuramoto_sivashinsky` function.
 * `:CoupledHenon1D, :henon1d`, see the `coupled_henon_1D` function.
